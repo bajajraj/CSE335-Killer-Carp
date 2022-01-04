@@ -1,0 +1,81 @@
+/**
+ * @file CarpFish.cpp
+ * @author Rajaditya Shrikishan Bajaj
+ */
+#include "pch.h"
+
+#include <memory>
+#include "CarpFish.h"
+#include "Item.h"
+#include <string>
+#include "Aquarium.h"
+
+using namespace std;
+
+/// Fish filename
+const wstring FishCarpFish = L"images/carp.png";
+
+/**
+ * Constructor
+ * @param aquarium Aquarium this fish is a member of
+ */
+CarpFish::CarpFish(Aquarium *aquarium) : Item(aquarium)
+{
+    mFishImage = make_unique<wxImage>(FishCarpFish, wxBITMAP_TYPE_ANY);
+    mFishBitmap = make_unique<wxBitmap>(*mFishImage);
+}
+
+/**
+ * Draw this fish
+ * @param dc Device context to draw on
+ */
+void CarpFish::Draw(wxDC* dc)
+{
+    double wid = mFishBitmap->GetWidth();
+    double hit = mFishBitmap->GetHeight();
+    dc->DrawBitmap(*mFishBitmap,
+            int(GetX() - wid / 2),
+            int(GetY() - hit / 2))
+            ;}
+
+
+/**
+ * Test to see if we hit this object with a mouse.
+ * @param x X position to test
+ * @param y Y position to test
+ * @return true if hit.
+ */
+bool CarpFish::HitTest(int x, int y)
+{
+    double wid = mFishBitmap->GetWidth();
+    double hit = mFishBitmap->GetHeight();
+
+    // Make x and y relative to the top-left corner of the bitmap image
+    // Subtracting the center makes x, y relative to the image center
+    // Adding half the size makes x, y relative to theimage top corner
+    double testX = x - GetX() + wid / 2;
+    double testY = y - GetY() + hit / 2;
+
+    // Test to see if x, y are in the image
+    if (testX < 0 || testY < 0 || testX >= wid || testY >= hit)
+    {
+        // We are outside the image
+        return false;
+    }
+
+    // Test to see if x, y are in the drawn part of the image
+    // If the location is transparent, we are not in the drawn
+    // part of the image
+    return !mFishImage->IsTransparent((int)testX, (int)testY);
+}
+
+/**
+ * Function that is responsible for setting carp's location.
+ * @param x The x location
+ * @param y The y location
+ */
+void CarpFish::SetLocation(double x, double y)
+{
+    Item::SetLocation(x,y);
+    GetAquarium()->FishKill(this);
+}
